@@ -1,0 +1,199 @@
+---
+title: "Introduction to episode: sparse estimation in ordinary differential equation systems"
+author: "Frederik Vissing Mikkelsen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This introduction is divided in three parts:
+
+- Specifying an ordinary differential equation system (ODE)
+- Specifying loss function and data
+- Parameter estimation
+
+## Specifying an ODE system
+
+All ordinary differential equation systems in `episode` are encoded via the `ode` class. This is an abstract class, meaning you can only create them by using one of the four implemented ODE subclasses: 
+
+- Mass action kinetics systems, `mak`.
+- Power law kinetics systems, `plk`.
+- Rational law action kinetics systems, `rlk`.
+- Rational mass action kinetics systems, `ratmak`.
+
+Consider for example the mass action kinetics systems, `mak`. They are encoded via two stoichiometric matrices. One can print the reactions by printing the `mak` object:
+
+```{r, echo=FALSE,results='hide'}
+# devtools::load_all()
+set.seed(123)
+library(episode)
+```
+
+
+```{r}
+# Stoichiometric matrices of the Michaelis-Menten system
+A <- matrix(
+  c(1, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 1, 0), ncol = 4, byrow = TRUE)
+B <- matrix(
+  c(0, 0, 1, 0,
+    1, 1, 0, 0,
+    1, 0, 0, 1), ncol = 4, byrow = TRUE)
+colnames(A) <- colnames(B) <- c("E", "S", "ES", "P")
+m <- mak(A, B)
+m
+```
+
+For solving the ODE system, use `numsolve`:
+```{r}
+# Initial state
+x0 <- setNames(c(8, 10, 1.5, 1.5), colnames(m$A))
+# Rate parameters
+k <- c(2.1, 2.25, 1.5)
+# Time discretisation
+Time <- seq(0, 1, by = 0.1)
+
+trajectory <- numsolve(m, time = Time, x0 = x0, param = k) 
+trajectory
+```
+
+For evaluating the field of the ODE system, use `field`:
+```{r}
+field(m, x = x0, param = k) 
+```
+
+
+### Numerical solver types
+When using `numsolve` or the exact estimation procedures `rodeo` (described later), a numerical solver is employed. By default, when creating an `ode` object through its subclasses, the ODE system is given the Runge-Kutta-Fehlberg scheme of order 4/5. Other solver types are available, all of which are embedded pair solvers, a class of very accurate explicit ODE solver. You create them via `solver` and specify them for your ODE system when creating them:
+
+```{r}
+solver("rk23")
+p <- plk(A, s = solver("rk23")) 
+```
+
+Additional arguments passed to `solver` include control parameters for the embedded pair solver. 
+
+
+
+
+## Specifying loss function and data
+
+When you wish to estimate parameters in an `ode` object from time course data, you specify the loss function to optimise via `opt`. An `opt` object holds: data, observational weights, specifications on the tuning parameter, tolerance level and whether to estimate the initial state or not.
+
+Minimally, you need to supply the data to `opt`:
+```{r}
+# Generated data
+y <- trajectory
+y[, -1] <- y[, -1] + matrix(rnorm(length(y[,-1]), sd = .5), nrow = nrow(y))
+
+# Create optimisation object
+op <- opt(y)
+```
+
+To control the tuning parameter use `nlambda`, `lambda_min_ratio` or `lambda` arguments in `opt`:
+```{r}
+# Create optimisation object, but only 10 lambda values
+op <- opt(y, nlambda = 10)
+```
+
+
+### Data format
+Data is always a n-x-(d+1) matrix `y`, where d is the number of coordinates in the ODE system and n is the number of observations. The first column must be the time points at which the observations are collected. The remaining columns represent the observed coordinates. Missing values are marked with `NA`. Whole coordinates are allowed to be unobserved, i.e. latent, but extra care must be taken. See section on "Latent coordinates" for details.
+
+
+### Regularisation
+The loss function consists of two parameter arguments (three for `ratmak`). The first is the initial state `x0` and the remaining are the actual parameters. All parameter arguments can regularised, meaning a penalty function is added to the loss function. To specify a regulariation use `reg`. This function/object works just as `solver` in that you specify them when you create the `ode` object:
+
+```{r}
+reg("elnet")
+m <- mak(A, B, r = reg("elnet")) 
+```
+
+You can specify the `reg` object for each parameter argument seperately, including the initial state. 
+
+The following penalty functions are implemented:
+
+- Lasso/l1 penalty, `"l1"`
+- Ridge/l2 penalty, `"l2"`
+- Elastic net penalty, `"elnet"`
+- SCAD penalty, `"scad"`
+- MCP penalty, `"mcp"`
+- No penalty, `"none"`
+
+Besides penalty type you can also specify (among others): 
+
+- Box constraints on the parameter via `lower` and `upper`
+- Penalty weights via `penalty_factor`
+- Different scales for the parameter coordinates via `scales`
+- Various control parameters for optimisation
+
+
+### Including multiple experiments
+The data may arise from multiple experiments performed on the same system. These experiments may also be refered to as "contexts" or "environments" depending on the scientific field. It is important to distinguish different experiments, as the system may have different initialisations or have been modified or intervened upon. To distinguish the experiments we use the time column, i.e., the first column of `y`. The convention is that **a new experiment starts whenever time decreases**. This is a natural way to define it, as time `0` often marks the beginning of an experiment. Thus, if you have `s` experiments, make sure that they all start at `0` and the observations are ordered by ascending time. Then `y` is supplied as the experiments stacked on top of each other. The time column of `y` now has a total of `s-1` decreases.
+
+Below we generate data from another experiment, where the reverse enzyme binding is inhibited: 
+```{r}
+# Generate intervened data with different initial state
+y_int <- numsolve(m, time = Time, x0 = x0 + 1, param = k * c(1, 0, 1))  
+y_int[, -1] <- y_int[, -1] + matrix(rnorm(length(y_int[,-1]), sd = .1), nrow = nrow(y_int))
+y2 <- rbind(y, y_int)
+
+# Create optimisation object with data from original system and intervened system
+op2 <- opt(y2, nlambda = 10)
+```
+
+When optimising the loss function, each experiment is given its own initial state. However, if you know the mode-of-action of interventions in each experiment, you need to include it through `contexts`, which is an argument in the `reg` function.
+
+`contexts` is a p-x-s matrix, where each row represents a parameter coordinate and each column represents the context. In the loss function the effective parameter used in context *l* is the coordinate wise product of the *l*th column in `contexts` and the estimatable baseline parameter. For instance in the data set `y2`, one would supply the following `contexts`:
+```{r}
+# First column scales the parameter in the original system, the second in the intervened system
+m2 <- mak(A, B, r = reg(contexts = cbind(1, c(1, 0, 1))))
+```
+
+
+## Parameter estimation
+
+There are two implemented parameter estimation methods: exact and approximate. The latter uses an inverse collocation method, called integral matching.
+
+### Exact estimation
+For doing exact estimation you use `rodeo` on your `ode` object:
+```{r}
+rod <- rodeo(m2, op2, x0 = NULL, params = NULL)
+rod$params$rate
+```
+
+Note that parameter initialisation are set to 0 if explicitly set to `NULL`. Similarly, the initial state values are set to the first observations from each context, if explictly set to `NULL`.
+
+
+### Integral matching estimation
+Alternatively you can use approximate integral matching estimation, which is faster and less likely to get stuck in local minima. You use it via `aim`:
+```{r}
+a <- aim(m2, op2)
+a$params$rate
+```
+
+Note that integral matching relies on a non-parametric estimate of the trajectory, which you supply through the argument `x`. If not explicitly supplied (as above), the system uses linear interpolation of data. If you want to fiddle around with integral matching on your own, then study the two functions: `imd` and `numint`.
+
+If you are not satisfied with the approximate estimates from `aim`, you can pass them to `rodeo` as initialisations for, say a non-regularised optimisation:
+
+```{r}
+# Change regularisation type to "none"
+a$o$rs$rate$reg_type <- "none"
+rod <- rodeo(a)
+rod$params$rate
+```
+
+All of the above estimates should be held against the true rate parameters:
+
+```{r}
+matrix(k, ncol = 1)
+```
+
+
+### Latent coordinates
+If some coordinates are completely unobserved, then `rodeo` still works. But if you wish to use `aim` you must supply a non-parametric estimate of the trajectory through the `x` argument to `aim`, including the latent coordinates. 
+

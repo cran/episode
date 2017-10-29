@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Frederik Vissing Mikkelsen" />
+
+<meta name="date" content="2017-10-24" />
+
+<title>Introduction to episode: sparse estimation in ordinary differential equation systems</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to episode: sparse estimation in ordinary differential equation systems</h1>
+<h4 class="author"><em>Frederik Vissing Mikkelsen</em></h4>
+<h4 class="date"><em>2017-10-24</em></h4>
+
+
+
+<p>This introduction is divided in three parts:</p>
+<ul>
+<li>Specifying an ordinary differential equation system (ODE)</li>
+<li>Specifying loss function and data</li>
+<li>Parameter estimation</li>
+</ul>
+<div id="specifying-an-ode-system" class="section level2">
+<h2>Specifying an ODE system</h2>
+<p>All ordinary differential equation systems in <code>episode</code> are encoded via the <code>ode</code> class. This is an abstract class, meaning you can only create them by using one of the four implemented ODE subclasses:</p>
+<ul>
+<li>Mass action kinetics systems, <code>mak</code>.</li>
+<li>Power law kinetics systems, <code>plk</code>.</li>
+<li>Rational law action kinetics systems, <code>rlk</code>.</li>
+<li>Rational mass action kinetics systems, <code>ratmak</code>.</li>
+</ul>
+<p>Consider for example the mass action kinetics systems, <code>mak</code>. They are encoded via two stoichiometric matrices. One can print the reactions by printing the <code>mak</code> object:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Stoichiometric matrices of the Michaelis-Menten system</span>
+A &lt;-<span class="st"> </span><span class="kw">matrix</span>(
+  <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>,
+    <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>,
+    <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>), <span class="dt">ncol =</span> <span class="dv">4</span>, <span class="dt">byrow =</span> <span class="ot">TRUE</span>)
+B &lt;-<span class="st"> </span><span class="kw">matrix</span>(
+  <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>,
+    <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>,
+    <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">ncol =</span> <span class="dv">4</span>, <span class="dt">byrow =</span> <span class="ot">TRUE</span>)
+<span class="kw">colnames</span>(A) &lt;-<span class="st"> </span><span class="kw">colnames</span>(B) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;E&quot;</span>, <span class="st">&quot;S&quot;</span>, <span class="st">&quot;ES&quot;</span>, <span class="st">&quot;P&quot;</span>)
+m &lt;-<span class="st"> </span><span class="kw">mak</span>(A, B)
+m</code></pre></div>
+<pre><code>## Reactions:
+##  -------------------------------- 
+##  E + S         -&gt;         ES    
+##          ES    -&gt; E + S         
+##          ES    -&gt; E          + P
+## 
+## Solver type: Runge-Kutta-Fehlberg of order 4/5 
+##  Control parameters
+##  ---------------------------------- 
+##  Maximum no. steps           100
+##  Tolerance level             1e-06
+##  Initial step discretisation 1e-04
+## 
+## Initial State Penalty: None 
+## 
+## Rate Parameter Penalty: l1 norm 
+##  Control parameters
+##  ---------------------------------
+##  Maximal no. of steps      200
+##  Steps per cycle           20
+##  Maximal backtracking      50
+##  Tolerance level           1e-05
+##  Initial step length       0.1
+##  Minimal step length       1e-10
+##  Step length factor        0.5
+## </code></pre>
+<p>For solving the ODE system, use <code>numsolve</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Initial state</span>
+x0 &lt;-<span class="st"> </span><span class="kw">setNames</span>(<span class="kw">c</span>(<span class="dv">8</span>, <span class="dv">10</span>, <span class="fl">1.5</span>, <span class="fl">1.5</span>), <span class="kw">colnames</span>(m$A))
+<span class="co"># Rate parameters</span>
+k &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">2.1</span>, <span class="fl">2.25</span>, <span class="fl">1.5</span>)
+<span class="co"># Time discretisation</span>
+Time &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">by =</span> <span class="fl">0.1</span>)
+
+trajectory &lt;-<span class="st"> </span><span class="kw">numsolve</span>(m, <span class="dt">time =</span> Time, <span class="dt">x0 =</span> x0, <span class="dt">param =</span> k) 
+trajectory</code></pre></div>
+<pre><code>##       Time        E          S       ES        P
+##  [1,]  0.0 8.000000 10.0000000 1.500000 1.500000
+##  [2,]  0.1 3.310541  4.5800399 6.189459 2.230501
+##  [3,]  0.2 3.113189  3.4275624 6.386811 3.185626
+##  [4,]  0.3 3.381170  2.7556061 6.118830 4.125564
+##  [5,]  0.4 3.752035  2.2363452 5.747965 5.015690
+##  [6,]  0.5 4.160069  1.8127113 5.339931 5.847358
+##  [7,]  0.6 4.585198  1.4692997 4.914802 6.615898
+##  [8,]  0.7 5.013556  1.1935575 4.486444 7.319998
+##  [9,]  0.8 5.434058  0.9739430 4.065942 7.960115
+## [10,]  0.9 5.837776  0.7995617 3.662224 8.538214
+## [11,]  1.0 6.218278  0.6608249 3.281722 9.057453
+## attr(,&quot;conv_code&quot;)
+## [1] 0</code></pre>
+<p>For evaluating the field of the ODE system, use <code>field</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">field</span>(m, <span class="dt">x =</span> x0, <span class="dt">param =</span> k) </code></pre></div>
+<pre><code>##        E        S       ES        P 
+## -162.375 -164.625  162.375    2.250</code></pre>
+<div id="numerical-solver-types" class="section level3">
+<h3>Numerical solver types</h3>
+<p>When using <code>numsolve</code> or the exact estimation procedures <code>rodeo</code> (described later), a numerical solver is employed. By default, when creating an <code>ode</code> object through its subclasses, the ODE system is given the Runge-Kutta-Fehlberg scheme of order 4/5. Other solver types are available, all of which are embedded pair solvers, a class of very accurate explicit ODE solver. You create them via <code>solver</code> and specify them for your ODE system when creating them:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">solver</span>(<span class="st">&quot;rk23&quot;</span>)</code></pre></div>
+<pre><code>## Solver type: Runge-Kutta of order 2/3 
+##  Control parameters
+##  ---------------------------------- 
+##  Maximum no. steps           100
+##  Tolerance level             1e-06
+##  Initial step discretisation 1e-04</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw">plk</span>(A, <span class="dt">s =</span> <span class="kw">solver</span>(<span class="st">&quot;rk23&quot;</span>)) </code></pre></div>
+<p>Additional arguments passed to <code>solver</code> include control parameters for the embedded pair solver.</p>
+</div>
+</div>
+<div id="specifying-loss-function-and-data" class="section level2">
+<h2>Specifying loss function and data</h2>
+<p>When you wish to estimate parameters in an <code>ode</code> object from time course data, you specify the loss function to optimise via <code>opt</code>. An <code>opt</code> object holds: data, observational weights, specifications on the tuning parameter, tolerance level and whether to estimate the initial state or not.</p>
+<p>Minimally, you need to supply the data to <code>opt</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Generated data</span>
+y &lt;-<span class="st"> </span>trajectory
+y[, -<span class="dv">1</span>] &lt;-<span class="st"> </span>y[, -<span class="dv">1</span>] +<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rnorm</span>(<span class="kw">length</span>(y[,-<span class="dv">1</span>]), <span class="dt">sd =</span> .<span class="dv">5</span>), <span class="dt">nrow =</span> <span class="kw">nrow</span>(y))
+
+<span class="co"># Create optimisation object</span>
+op &lt;-<span class="st"> </span><span class="kw">opt</span>(y)</code></pre></div>
+<p>To control the tuning parameter use <code>nlambda</code>, <code>lambda_min_ratio</code> or <code>lambda</code> arguments in <code>opt</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create optimisation object, but only 10 lambda values</span>
+op &lt;-<span class="st"> </span><span class="kw">opt</span>(y, <span class="dt">nlambda =</span> <span class="dv">10</span>)</code></pre></div>
+<div id="data-format" class="section level3">
+<h3>Data format</h3>
+<p>Data is always a n-x-(d+1) matrix <code>y</code>, where d is the number of coordinates in the ODE system and n is the number of observations. The first column must be the time points at which the observations are collected. The remaining columns represent the observed coordinates. Missing values are marked with <code>NA</code>. Whole coordinates are allowed to be unobserved, i.e. latent, but extra care must be taken. See section on “Latent coordinates” for details.</p>
+</div>
+<div id="regularisation" class="section level3">
+<h3>Regularisation</h3>
+<p>The loss function consists of two parameter arguments (three for <code>ratmak</code>). The first is the initial state <code>x0</code> and the remaining are the actual parameters. All parameter arguments can regularised, meaning a penalty function is added to the loss function. To specify a regulariation use <code>reg</code>. This function/object works just as <code>solver</code> in that you specify them when you create the <code>ode</code> object:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">reg</span>(<span class="st">&quot;elnet&quot;</span>)</code></pre></div>
+<pre><code>## Penalty: Elastic Net 
+##  Control parameters
+##  ---------------------------------
+##  Maximal no. of steps      200
+##  Steps per cycle           20
+##  Maximal backtracking      50
+##  Tolerance level           1e-05
+##  Initial step length       0.1
+##  Minimal step length       1e-10
+##  Step length factor        0.5
+## </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m &lt;-<span class="st"> </span><span class="kw">mak</span>(A, B, <span class="dt">r =</span> <span class="kw">reg</span>(<span class="st">&quot;elnet&quot;</span>)) </code></pre></div>
+<p>You can specify the <code>reg</code> object for each parameter argument seperately, including the initial state.</p>
+<p>The following penalty functions are implemented:</p>
+<ul>
+<li>Lasso/l1 penalty, <code>&quot;l1&quot;</code></li>
+<li>Ridge/l2 penalty, <code>&quot;l2&quot;</code></li>
+<li>Elastic net penalty, <code>&quot;elnet&quot;</code></li>
+<li>SCAD penalty, <code>&quot;scad&quot;</code></li>
+<li>MCP penalty, <code>&quot;mcp&quot;</code></li>
+<li>No penalty, <code>&quot;none&quot;</code></li>
+</ul>
+<p>Besides penalty type you can also specify (among others):</p>
+<ul>
+<li>Box constraints on the parameter via <code>lower</code> and <code>upper</code></li>
+<li>Penalty weights via <code>penalty_factor</code></li>
+<li>Different scales for the parameter coordinates via <code>scales</code></li>
+<li>Various control parameters for optimisation</li>
+</ul>
+</div>
+<div id="including-multiple-experiments" class="section level3">
+<h3>Including multiple experiments</h3>
+<p>The data may arise from multiple experiments performed on the same system. These experiments may also be refered to as “contexts” or “environments” depending on the scientific field. It is important to distinguish different experiments, as the system may have different initialisations or have been modified or intervened upon. To distinguish the experiments we use the time column, i.e., the first column of <code>y</code>. The convention is that <strong>a new experiment starts whenever time decreases</strong>. This is a natural way to define it, as time <code>0</code> often marks the beginning of an experiment. Thus, if you have <code>s</code> experiments, make sure that they all start at <code>0</code> and the observations are ordered by ascending time. Then <code>y</code> is supplied as the experiments stacked on top of each other. The time column of <code>y</code> now has a total of <code>s-1</code> decreases.</p>
+<p>Below we generate data from another experiment, where the reverse enzyme binding is inhibited:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Generate intervened data with different initial state</span>
+y_int &lt;-<span class="st"> </span><span class="kw">numsolve</span>(m, <span class="dt">time =</span> Time, <span class="dt">x0 =</span> x0 +<span class="st"> </span><span class="dv">1</span>, <span class="dt">param =</span> k *<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>))  
+y_int[, -<span class="dv">1</span>] &lt;-<span class="st"> </span>y_int[, -<span class="dv">1</span>] +<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rnorm</span>(<span class="kw">length</span>(y_int[,-<span class="dv">1</span>]), <span class="dt">sd =</span> .<span class="dv">1</span>), <span class="dt">nrow =</span> <span class="kw">nrow</span>(y_int))
+y2 &lt;-<span class="st"> </span><span class="kw">rbind</span>(y, y_int)
+
+<span class="co"># Create optimisation object with data from original system and intervened system</span>
+op2 &lt;-<span class="st"> </span><span class="kw">opt</span>(y2, <span class="dt">nlambda =</span> <span class="dv">10</span>)</code></pre></div>
+<p>When optimising the loss function, each experiment is given its own initial state. However, if you know the mode-of-action of interventions in each experiment, you need to include it through <code>contexts</code>, which is an argument in the <code>reg</code> function.</p>
+<p><code>contexts</code> is a p-x-s matrix, where each row represents a parameter coordinate and each column represents the context. In the loss function the effective parameter used in context <em>l</em> is the coordinate wise product of the <em>l</em>th column in <code>contexts</code> and the estimatable baseline parameter. For instance in the data set <code>y2</code>, one would supply the following <code>contexts</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># First column scales the parameter in the original system, the second in the intervened system</span>
+m2 &lt;-<span class="st"> </span><span class="kw">mak</span>(A, B, <span class="dt">r =</span> <span class="kw">reg</span>(<span class="dt">contexts =</span> <span class="kw">cbind</span>(<span class="dv">1</span>, <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>))))</code></pre></div>
+</div>
+</div>
+<div id="parameter-estimation" class="section level2">
+<h2>Parameter estimation</h2>
+<p>There are two implemented parameter estimation methods: exact and approximate. The latter uses an inverse collocation method, called integral matching.</p>
+<div id="exact-estimation" class="section level3">
+<h3>Exact estimation</h3>
+<p>For doing exact estimation you use <code>rodeo</code> on your <code>ode</code> object:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rod &lt;-<span class="st"> </span><span class="kw">rodeo</span>(m2, op2, <span class="dt">x0 =</span> <span class="ot">NULL</span>, <span class="dt">params =</span> <span class="ot">NULL</span>)
+rod$params$rate</code></pre></div>
+<pre><code>## 3 x 10 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                                                   
+## [1,] . 0.05040893 0.1195512 0.1953322 0.5381662 0.8262499 1.063134
+## [2,] . .          .         .         .         .         .       
+## [3,] . .          .         .         0.9337910 1.3535604 1.506730
+##                                
+## [1,] 1.254414 1.498628 1.748778
+## [2,] .        0.621268 1.373936
+## [3,] 1.554898 1.550173 1.539205</code></pre>
+<p>Note that parameter initialisation are set to 0 if explicitly set to <code>NULL</code>. Similarly, the initial state values are set to the first observations from each context, if explictly set to <code>NULL</code>.</p>
+</div>
+<div id="integral-matching-estimation" class="section level3">
+<h3>Integral matching estimation</h3>
+<p>Alternatively you can use approximate integral matching estimation, which is faster and less likely to get stuck in local minima. You use it via <code>aim</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">a &lt;-<span class="st"> </span><span class="kw">aim</span>(m2, op2)
+a$params$rate</code></pre></div>
+<pre><code>## 3 x 10 sparse Matrix of class &quot;dgCMatrix&quot;</code></pre>
+<pre><code>##    [[ suppressing 10 column names 's0', 's1', 's2' ... ]]</code></pre>
+<pre><code>##                                                                        
+## V1 . 0.69360617 1.0880222 1.2770790 1.345030 1.369423 1.378199 1.381347
+## V2 . .          0.3081512 0.9898034 1.234672 1.322743 1.354325 1.365628
+## V3 . 0.09867549 1.0314000 1.2771862 1.365549 1.397263 1.408685 1.412795
+##                     
+## V1 1.382475 1.382839
+## V2 1.369805 1.371141
+## V3 1.414243 1.414764</code></pre>
+<p>Note that integral matching relies on a non-parametric estimate of the trajectory, which you supply through the argument <code>x</code>. If not explicitly supplied (as above), the system uses linear interpolation of data. If you want to fiddle around with integral matching on your own, then study the two functions: <code>imd</code> and <code>numint</code>.</p>
+<p>If you are not satisfied with the approximate estimates from <code>aim</code>, you can pass them to <code>rodeo</code> as initialisations for, say a non-regularised optimisation:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Change regularisation type to &quot;none&quot;</span>
+a$o$rs$rate$reg_type &lt;-<span class="st"> &quot;none&quot;</span>
+rod &lt;-<span class="st"> </span><span class="kw">rodeo</span>(a)
+rod$params$rate</code></pre></div>
+<pre><code>## 3 x 10 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                                                    
+## [1,] 2.028109 2.028109 2.028109 2.028109 2.028109 2.028109 2.028109
+## [2,] 2.156663 2.156663 2.156663 2.156663 2.156663 2.156663 2.156663
+## [3,] 1.528525 1.528525 1.528525 1.528525 1.528525 1.528525 1.528525
+##                                
+## [1,] 2.028109 2.028109 2.028109
+## [2,] 2.156663 2.156663 2.156663
+## [3,] 1.528525 1.528525 1.528525</code></pre>
+<p>All of the above estimates should be held against the true rate parameters:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">matrix</span>(k, <span class="dt">ncol =</span> <span class="dv">1</span>)</code></pre></div>
+<pre><code>##      [,1]
+## [1,] 2.10
+## [2,] 2.25
+## [3,] 1.50</code></pre>
+</div>
+<div id="latent-coordinates" class="section level3">
+<h3>Latent coordinates</h3>
+<p>If some coordinates are completely unobserved, then <code>rodeo</code> still works. But if you wish to use <code>aim</code> you must supply a non-parametric estimate of the trajectory through the <code>x</code> argument to <code>aim</code>, including the latent coordinates.</p>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
